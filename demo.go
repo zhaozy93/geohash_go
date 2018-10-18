@@ -1,4 +1,4 @@
-package main
+package geohash_go
 
 import (
 	"demo"
