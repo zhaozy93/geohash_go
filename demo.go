@@ -1,7 +1,7 @@
 package geohash_go
 
 import (
-	"demo"
+	"fmt"
 	"github.com/zhaozy93/geohash_go"
 )
 
