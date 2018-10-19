@@ -10,4 +10,6 @@ func main() {
 	fmt.Println(hashKey)
 	lat, lng, _ := geohash_go.DeGeoHash(hashKey)
 	fmt.Println(lat, lng)
+	neig, _ := geohash_go.GetNeighour(hashKey)
+	fmt.Println(neig)
 }
