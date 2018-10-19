@@ -11,6 +11,18 @@ const (
 	lngMax = float64(180.0)
 )
 
+var direction = map[string][]int{
+	// dir: []int{上，下，左，右}
+	"top":         []int{1, 0, 0, 0},
+	"lefttop":     []int{1, 0, 1, 0},
+	"righttop":    []int{1, 0, 0, 1},
+	"left":        []int{0, 0, 1, 0},
+	"right":       []int{0, 0, 0, 1},
+	"bottom":      []int{0, 1, 0, 0},
+	"bottomleft":  []int{0, 1, 1, 0},
+	"bottomright": []int{0, 1, 0, 1},
+}
+
 var bitMap = map[string]string{
 	"00000": "0",
 	"00001": "1",
@@ -149,8 +161,117 @@ func DeGeoHash(hashKey string) (float64, float64, error) {
 		lngIndex[i] = hashStr[i*2]
 		latIndex[i] = hashStr[i*2+1]
 	}
-
 	lat := DeIndex(latMin, latMax, latIndex)
 	lng := DeIndex(lngMin, lngMax, lngIndex)
 	return lat, lng, nil
+}
+
+func GetNeighour(hashKey string) (map[string]string, error) {
+	hashStr := ""
+	if len(hashKey)%2 != 0 {
+		return nil, errors.New("HashKey error")
+	}
+	neighboour := make(map[string]string)
+	for _, k := range hashKey {
+		hashStr += strMap[string(k)]
+	}
+	latIndex := make([]byte, len(hashStr)/2)
+	lngIndex := make([]byte, len(hashStr)/2)
+	for i := 0; i < len(hashStr)/2; i++ {
+		lngIndex[i] = hashStr[i*2]
+		latIndex[i] = hashStr[i*2+1]
+	}
+	for k, _ := range direction {
+		neighboour[k] = GetNeirghbourDir(latIndex, lngIndex, k)
+	}
+	return neighboour, nil
+}
+
+func GetNeirghbourDir(latIndex, lngIndex []byte, dir string) string {
+	dirOper := direction[dir]
+	if dirOper[0] == 1 {
+		latIndex = CalculateBinary(latIndex, true)
+	} else if dirOper[1] == 1 {
+		latIndex = CalculateBinary(latIndex, false)
+	}
+
+	if dirOper[2] == 1 {
+		lngIndex = CalculateBinary(lngIndex, false)
+	} else if dirOper[3] == 1 {
+		lngIndex = CalculateBinary(lngIndex, true)
+	}
+	hashIndex := make([]byte, len(lngIndex)*2)
+	for i := 0; i < len(lngIndex); i++ {
+		hashIndex[2*i] = lngIndex[i]
+		hashIndex[2*i+1] = latIndex[i]
+	}
+	hashKey := ""
+	end := len(hashIndex)
+	for {
+		start := end - 5
+		if start > 0 {
+			hashKey = bitMap[string(hashIndex[start:end])] + hashKey
+		} else {
+			hashKey = bitMap[string(hashIndex[0:end])] + hashKey
+			break
+		}
+		end = end - 5
+	}
+	return hashKey
+}
+
+func CalculateBinary(index []byte, add bool) []byte {
+	old := make([]byte, len(index))
+	for i, v := range index {
+		old[i] = v
+	}
+	last := old[len(old)-1]
+	if last == '0' && add {
+		old[len(old)-1] = '1'
+		return old
+	}
+	if last == '1' && !add {
+		old[len(old)-1] = '0'
+		return old
+	}
+	if last == '1' && add {
+		isEnd := true
+		old[len(old)-1] = '0'
+		for i := len(old) - 2; i >= 0; i-- {
+			if old[i] == '1' {
+				old[i] = '0'
+			} else if old[i] == '0' {
+				old[i] = '1'
+				isEnd = false
+				break
+			}
+		}
+		if isEnd {
+			for i, _ := range old {
+				old[i] = '0'
+			}
+		}
+		return old
+	}
+
+	if last == '0' && !add {
+		isStart := true
+		old[len(old)-1] = '1'
+		for i := len(old) - 2; i >= 0; i-- {
+			if old[i] == '0' {
+				old[i] = '1'
+			} else if old[i] == '1' {
+				old[i] = '0'
+				isStart = false
+				break
+			}
+		}
+		if isStart {
+			for i, _ := range old {
+				old[i] = '1'
+			}
+		}
+		return old
+	}
+	return old
 }
