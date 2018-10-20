@@ -93,6 +93,79 @@ var strMap = map[string]string{
 	"z": "11111",
 }
 
+var dirMap = map[byte]string{
+	// even 上下左右
+	// odd  右左下上
+	'0': "1pb2",
+	'1': "40c3",
+	'2': "3r08",
+	'3': "6219",
+	'4': "51f6",
+	'5': "h4g7",
+	'6': "734d",
+	'7': "k65e",
+	'8': "9x2b",
+	'9': "d83c",
+	'b': "cz80",
+	'c': "fb91",
+	'd': "e96f",
+	'e': "sd7g",
+	'f': "gcd4",
+	'g': "ufe5",
+	'h': "j5uk",
+	'j': "nhvm",
+	'k': "m7hs",
+	'm': "qkjt",
+	'n': "pjyq",
+	'p': "0nzr",
+	'q': "rmnw",
+	'r': "2qpx",
+	't': "wsmv",
+	'u': "vgsh",
+	'v': "yutj",
+	'x': "8wrz",
+	'w': "xtqy",
+	'y': "zvwn",
+	'z': "byxp",
+}
+
+var bourderMap = map[byte]string{
+	// even 上下左右
+	// odd  右左下上
+	'0': "0110",
+	'1': "0010",
+	'2': "0100",
+	'4': "0010",
+	'5': "0010",
+	'8': "0100",
+	'b': "0101",
+	'c': "0001",
+	'f': "0001",
+	'g': "0001",
+	'h': "0010",
+	'j': "0010",
+	'n': "0010",
+	'p': "1010",
+	'r': "1000",
+	'u': "0001",
+	'v': "0001",
+	'x': "1000",
+	'y': "0001",
+	'z': "1010",
+}
+var evenDirIndex = map[string]int{
+	"top":    0,
+	"bottom": 1,
+	"left":   2,
+	"right":  3,
+}
+var oddDirIndex = map[string]int{
+	"top":    3,
+	"bottom": 2,
+	"left":   1,
+	"right":  0,
+}
+
 func EnGeoHash(lat, lng float64, accury int) (string, error) {
 	if accury%5 != 0 {
 		return "", errors.New("accury error")
@@ -166,7 +239,43 @@ func DeGeoHash(hashKey string) (float64, float64, error) {
 	return lat, lng, nil
 }
 
-func GetNeighour(hashKey string) (map[string]string, error) {
+func GetNeighbour(hashKey string) (map[string]string, error) {
+	if len(hashKey)%2 != 0 {
+		return nil, errors.New("HashKey error")
+	}
+	res := make(map[string]string)
+	res["top"] = GetNeighourDirection(hashKey, "top")
+	res["bottom"] = GetNeighourDirection(hashKey, "bottom")
+	res["left"] = GetNeighourDirection(hashKey, "left")
+	res["right"] = GetNeighourDirection(hashKey, "right")
+
+	res["lefttop"] = GetNeighourDirection(res["top"], "left")
+	res["leftbottom"] = GetNeighourDirection(res["bottom"], "left")
+	res["righttop"] = GetNeighourDirection(res["top"], "right")
+	res["rightbottom"] = GetNeighourDirection(res["bottom"], "right")
+	return res, nil
+}
+
+func GetNeighourDirection(hashKey, dir string) string {
+	isEven := len(hashKey)%2 == 0
+	base := hashKey[:len(hashKey)-1]
+	last := hashKey[len(hashKey)-1]
+	if isEven {
+		if v, ok := bourderMap[last]; !ok || len(base) == 0 || v[evenDirIndex[dir]] == '0' {
+			return base + string(dirMap[last][evenDirIndex[dir]])
+		} else {
+			return GetNeighourDirection(base, dir) + string(dirMap[last][evenDirIndex[dir]])
+		}
+	} else {
+		if v, ok := bourderMap[last]; !ok || len(base) == 0 || v[oddDirIndex[dir]] == '0' {
+			return base + string(dirMap[last][oddDirIndex[dir]])
+		} else {
+			return GetNeighourDirection(base, dir) + string(dirMap[last][oddDirIndex[dir]])
+		}
+	}
+}
+
+func GetNeighbour_back(hashKey string) (map[string]string, error) {
 	hashStr := ""
 	if len(hashKey)%2 != 0 {
 		return nil, errors.New("HashKey error")
