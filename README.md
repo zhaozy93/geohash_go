@@ -10,6 +10,16 @@ Getting the library
 
 ` go get github.com/zhaozy93/geohash_go`
 
+Usage
+-------------------
+``` golang
+ import "github.com/zhaozy93/geohash_go"
+ hashKey, err := geohash_go.EnGeoHash(float64(39.928167), float64(116.389550), 10)
+ lat, lng, err := geohash_go.DeGeoHash(hashKey)
+ neigh, err = geohash_go.GetNeighbour(hashKey)
+)
+```
+
 Bugs
 -------------------
 If you have any questions or find some unexpectedly discovered, please comment or contribute.  
