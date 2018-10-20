@@ -19,12 +19,12 @@ func main() {
 	fmt.Println(lat, lng)
 
 	tBeg = time.Now().UnixNano()
-	neigh, _ := geohash_go.GetNeighour_back(hashKey)
+	neigh, _ := geohash_go.GetNeighbour_back(hashKey)
 	fmt.Println("GetNeighour_back Time used:", (time.Now().UnixNano()-tBeg)/1000)
 	fmt.Println(neigh)
 
 	tBeg = time.Now().UnixNano()
-	neigh, _ = geohash_go.GetNeighour(hashKey)
+	neigh, _ = geohash_go.GetNeighbour(hashKey)
 	fmt.Println("GetNeighour Time used:", (time.Now().UnixNano()-tBeg)/1000)
 	fmt.Println(neigh)
 }
