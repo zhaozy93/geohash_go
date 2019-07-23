@@ -3,6 +3,7 @@ package geohash_go
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 func geotest(t *testing.T) {
